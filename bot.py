@@ -1,9 +1,16 @@
 import sqlite3
 import telebot
+import yaml
 
 token = 'ТОКЕН'
 
-bot = telebot.TeleBot('643578148:AAEL0uDRO6cY7lgqzk0yNpmXDOuz0KaX2dI')
+with open('conf.yml', 'r') as file:
+  conf_data = yaml.safe_load(file)
+
+botToken=conf_data['creds']['botToken']
+bot = telebot.TeleBot(botToken)
+
+print("Token:"+botToken+"\n")
 
 def getAccess(user_id):
   with sqlite3.connect('users.db') as conn:
@@ -20,7 +27,7 @@ def repeat_all_message(message):
   access = getAccess(message.chat.id)
 
   if access:
-    if access[0] == '1':
+    if access[0] == 1:
       bot.send_message(message.chat.id,'Привет Admin!')
     else:
       bot.send_message(message.chat.id,'Привет User!')
