@@ -34,6 +34,23 @@ def repeat_all_message(message):
   else:
     bot.send_message(message.chat.id,'Вы не зарегистрированны в системе!')
 
+@bot.message_handler(commands=['hi'])
+def repeat_all_message(message):
+  bot.send_message(message.chat.id,'hi')
+
+@bot.message_handler(commands=['like'])
+def like(message):
+  cid = message.chat.id
+  bot.send_message(cid, "Do you like it?", reply_markup=keyboard)
+
+@bot.message_handler(commands=['start'])
+def start_message(message):
+    keyboard = telebot.types.ReplyKeyboardMarkup(True)
+    keyboard.row('Привет', 'Пока')
+    bot.send_message(message.chat.id, 'Привет!', reply_markup=keyboard)
+
+    
+
 
 if __name__ == '__main__':
   bot.polling(none_stop=True)
