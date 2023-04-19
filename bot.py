@@ -1,13 +1,48 @@
 import sqlite3
 import telebot
 import yaml
-
-token = 'ТОКЕН'
+import paho.mqtt.client as mqtt
 
 with open('conf.yml', 'r') as file:
   conf_data = yaml.safe_load(file)
 
 botToken=conf_data['creds']['botToken']
+mqttuser = conf_data['creds']['mqttUser']
+mqttserver = conf_data['creds']['mqttServer']
+mqttpass = conf_data['creds']['mqttPass']
+mqttport = conf_data['creds']['mqttPort']
+
+# Define event callbacks
+def on_connect(client, userdata, flags, rc):
+    print("rc: " + str(rc))
+
+def on_message(client, obj, msg):
+    print(msg.topic + " " + str(msg.qos) + " " + str(msg.payload))
+
+def on_publish(client, obj, mid):
+    print("mid: " + str(mid))
+
+def on_subscribe(client, obj, mid, granted_qos):
+    print("Subscribed: " + str(mid) + " " + str(granted_qos))
+
+def on_log(client, obj, level, string):
+    print(string)
+
+mqttc = mqtt.Client()
+
+# Assign event callbacks
+mqttc.on_message = on_message
+mqttc.on_connect = on_connect
+mqttc.on_publish = on_publish
+mqttc.on_subscribe = on_subscribe
+
+mqttc.username_pw_set(mqttuser, mqttpass)
+mqttc.connect(mqttserver, mqttport)
+
+mqttc.subscribe("/donoff/dmzk15/out/sensors/temp_out", 0)
+
+
+
 bot = telebot.TeleBot(botToken)
 
 print("Token:"+botToken+"\n")
@@ -53,4 +88,6 @@ def start_message(message):
 
 
 if __name__ == '__main__':
-  bot.polling(none_stop=True)
+  mqttc.loop_start()
+  bot.polling()
+ 
