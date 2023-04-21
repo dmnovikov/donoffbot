@@ -2,6 +2,12 @@ import sqlite3
 import telebot
 import yaml
 import paho.mqtt.client as mqtt
+import shedule
+import time
+
+
+
+gmessage = 'gmsg'
 
 with open('conf.yml', 'r') as file:
   conf_data = yaml.safe_load(file)
@@ -12,12 +18,22 @@ mqttserver = conf_data['creds']['mqttServer']
 mqttpass = conf_data['creds']['mqttPass']
 mqttport = conf_data['creds']['mqttPort']
 
+def schedule_checker():
+    while True:
+        schedule.run_pending()
+        sleep(1)
+
 # Define event callbacks
 def on_connect(client, userdata, flags, rc):
     print("rc: " + str(rc))
 
 def on_message(client, obj, msg):
-    print(msg.topic + " " + str(msg.qos) + " " + str(msg.payload))
+  # print(msg.topic + " " + str(msg.qos) + " " + str(msg.payload))
+  global gmessage
+  gmessage=str(msg.payload)
+  #print('gmessage='+gmessage+'\n')
+
+  return
 
 def on_publish(client, obj, mid):
     print("mid: " + str(mid))
@@ -39,7 +55,7 @@ mqttc.on_subscribe = on_subscribe
 mqttc.username_pw_set(mqttuser, mqttpass)
 mqttc.connect(mqttserver, mqttport)
 
-mqttc.subscribe("/donoff/dmzk15/out/sensors/temp_out", 0)
+mqttc.subscribe("/donoff/dmzk15/out/time_up", 0)
 
 
 
@@ -80,14 +96,36 @@ def like(message):
 
 @bot.message_handler(commands=['start'])
 def start_message(message):
-    keyboard = telebot.types.ReplyKeyboardMarkup(True)
-    keyboard.row('Привет', 'Пока')
-    bot.send_message(message.chat.id, 'Привет!', reply_markup=keyboard)
+    # keyboard = telebot.types.ReplyKeyboardMarkup(True)
+    # keyboard.row('Привет', 'Пока')
+    # print('start')
+    # keyboard.add('A')
+    # bot.send_message(message.chat.id, 'Start', reply_markup=keyboard)
+    return
 
-    
+@bot.message_handler(commands=['start2'])
+def start_message(message):
+    keyboard2 = telebot.types.ReplyKeyboardMarkup(True)
+    print('start2 :'+ gmessage)
+    keyboard2.add(gmessage)
+    bot.send_message(message.chat.id, 'Start2', reply_markup=keyboard2)
 
+
+@bot.message_handler(content_types=['text'])
+def handle_text(message):
+  #print(message)
+  #bot.send_message(message.chat.id, 'ППП')
+  if message.text == 'Привет':
+    # keyboard = telebot.types.ReplyKeyboardMarkup(False)
+    #keyboard.row('П', 'П')
+    bot.send_message(message.chat.id, 'ПППривет')
+  if message.text == 'Пока':
+    bot.send_message(message.chat.id, 'ПППока')
 
 if __name__ == '__main__':
+  scheduleThread = Thread(target=schedule_checker)
+  scheduleThread.daemon = True
+  scheduleThread.start()
   mqttc.loop_start()
   bot.polling()
  

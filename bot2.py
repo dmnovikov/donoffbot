@@ -25,4 +25,4 @@ def send_text(message):
     elif message.text.lower() == 'пока':
         bot.send_message(message.chat.id, 'Пока!')
 
-bot.polling()
+#bot.polling()
