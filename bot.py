@@ -2,8 +2,9 @@ import sqlite3
 import telebot
 import yaml
 import paho.mqtt.client as mqtt
-import shedule
-import time
+from threading import Thread
+import schedule
+from time import sleep
 
 
 
@@ -19,9 +20,9 @@ mqttpass = conf_data['creds']['mqttPass']
 mqttport = conf_data['creds']['mqttPort']
 
 def schedule_checker():
-    while True:
-        schedule.run_pending()
-        sleep(1)
+  while True:
+    schedule.run_pending()
+    sleep(1)
 
 # Define event callbacks
 def on_connect(client, userdata, flags, rc):
@@ -73,7 +74,7 @@ def getAccess(user_id):
 @bot.message_handler(commands=['admin'])
 def repeat_all_message(message):
   print(message.chat.id)
-  bot.send_message(message.chat.id,message.text)
+  #bot.send_message(message.chat.id,message.text)
 
   access = getAccess(message.chat.id)
 
@@ -94,25 +95,34 @@ def like(message):
   cid = message.chat.id
   bot.send_message(cid, "Do you like it?", reply_markup=keyboard)
 
-@bot.message_handler(commands=['start'])
-def start_message(message):
-    # keyboard = telebot.types.ReplyKeyboardMarkup(True)
-    # keyboard.row('Привет', 'Пока')
-    # print('start')
-    # keyboard.add('A')
-    # bot.send_message(message.chat.id, 'Start', reply_markup=keyboard)
+@bot.message_handler(commands=['stop'])
+def stop_message(message):
+    m=message.chat.id
+    bot.send_message(m, 'begin stop')
+    if  len(schedule.get_jobs(m)) >= 1:
+      schedule.clear(m)
+      bot.send_message(m, 'stop sheduler')
+    else:
+      bot.send_message(m, 'sheduler already sopped')
+
+    bot.send_message(m, 'finish stop')
     return
 
-@bot.message_handler(commands=['start2'])
+@bot.message_handler(commands=['start'])
 def start_message(message):
-    keyboard2 = telebot.types.ReplyKeyboardMarkup(True)
-    print('start2 :'+ gmessage)
-    keyboard2.add(gmessage)
-    bot.send_message(message.chat.id, 'Start2', reply_markup=keyboard2)
+    m=message.chat.id
+    bot.send_message(m, 'begin start')
+    if  len(schedule.get_jobs(m)) == 0:
+      schedule.every(3).seconds.do(get_sending_function(m)).tag(m)
+      bot.send_message(m, 'start sheduler')
+    else:
+      bot.send_message(m, 'sheduler already started')
+    bot.send_message(message.chat.id, 'finish start')
+    return
 
 
 @bot.message_handler(content_types=['text'])
-def handle_text(message):
+def handle_text1(message):
   #print(message)
   #bot.send_message(message.chat.id, 'ППП')
   if message.text == 'Привет':
@@ -122,7 +132,22 @@ def handle_text(message):
   if message.text == 'Пока':
     bot.send_message(message.chat.id, 'ПППока')
 
+def get_sending_function(m):
+    def send_function():
+      keyboard2 = telebot.types.ReplyKeyboardMarkup(True)
+      keyboard2.add(gmessage)
+      bot.send_message(m, 'a', reply_markup=keyboard2)
+      #bot.send_message(m, "mqtt:{gmessage}")
+    # print('start')
+    # keyboard.add('A')
+    # bot.send_message(message.chat.id, 'Start', reply_markup=keyboard)
+        #bot.send_message(m, "ВНИМАНИЕ! 3сек")
+        #return schedule.CancelJob
+      return
+    return send_function
+
 if __name__ == '__main__':
+ 
   scheduleThread = Thread(target=schedule_checker)
   scheduleThread.daemon = True
   scheduleThread.start()
