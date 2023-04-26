@@ -1,6 +1,7 @@
 
 import paho.mqtt.client as mqtt
 import yaml
+from dataclasses import dataclass
 
 with open('conf.yml', 'r') as file:
   conf_data = yaml.safe_load(file)
@@ -10,12 +11,34 @@ mqttserver = conf_data['creds']['mqttServer']
 mqttpass = conf_data['creds']['mqttPass']
 mqttport = conf_data['creds']['mqttPort']
 
+devices=[]
+
+@dataclass
+class device:
+    name: str
+    time_up: str
+    time_last_seen: str
+
 # Define event callbacks
 def on_connect(client, userdata, flags, rc):
     print("rc: " + str(rc))
 
 def on_message(client, obj, msg):
-    print(msg.topic + " " + str(msg.qos) + " " + str(msg.payload))
+    #print(msg.topic + " :" + str(msg.qos) + " :" + str(msg.payload))
+    if 'time_up' in str(msg.topic):
+        dev_name= str(msg.topic).split('/')[2]
+        time_up= str(msg.payload).split('\'')[1]
+        #print(F'devname: {dev_name}')
+        for dev in devices: 
+            if dev.name == dev_name:
+                #print('in,update')
+                dev.time_up=time_up
+                break
+        else:
+            #print('out,append')
+            devices.append(device(dev_name,time_up))
+        print(devices)
+        print('****************\n')
 
 def on_publish(client, obj, mid):
     print("mid: " + str(mid))
@@ -44,7 +67,7 @@ mqttc.username_pw_set(mqttuser, mqttpass)
 mqttc.connect(mqttserver, mqttport)
 
 # Start subscribe, with QoS level 0
-mqttc.subscribe("/donoff/dmzk15/out/sensors/temp_out", 0)
+mqttc.subscribe("/donoff/+/out/time_up", 0)
 
 # Publish a message
 # mqttc.publish(topic, "my message")

@@ -29,7 +29,7 @@ def on_connect(client, userdata, flags, rc):
     print("rc: " + str(rc))
 
 def on_message(client, obj, msg):
-  # print(msg.topic + " " + str(msg.qos) + " " + str(msg.payload))
+  print(msg.topic + " " + str(msg.qos) + " " + str(msg.payload))
   global gmessage
   gmessage=str(msg.payload)
   #print('gmessage='+gmessage+'\n')
