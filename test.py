@@ -21,12 +21,14 @@ class device:
 
 # print("Token:"+conf_data['creds']['botToken']+"\n")
 
+msg0="/donoff/dmzk17/out/time_up" 
 msg1="/donoff/dmzk15/out/time_up"
-msg2="/donoff/dmzk15/out/time_up" 
+msg2="/donoff/dmzk16/out/time_up" 
 
 msg_arr1=msg1.split('/')
 msg_arr2=msg2.split('/')
 
+devices.append(device(msg0.split('/')[2],"0:1"))
 devices.append(device(msg1.split('/')[2],"0:1"))
 
 for dev in devices: 
@@ -38,15 +40,26 @@ else:
         print('out,append')
         devices.append(device(msg_arr2[2],"0:2"))
 
-for dev in devices: 
-    if dev.name == 'dmzk15':
-        print('remove')
-        devices.remove(dev)
-        break
-#devices[3].time_up="0:3"
+
+
+# for dev in devices: 
+#     if dev.name == 'dmzk15':
+#         print('remove')
+#         devices.remove(dev)
+#         break
+# #devices[3].time_up="0:3"
                
 
 # if devices.append(dmzk15)
+
+def sort_by_ts(dev):
+     return dev.name
+
+
+print(devices)
+print('sorted \n\n')
+
+devices.sort(key=sort_by_ts)
 
 print(devices)
 

@@ -2,6 +2,7 @@
 import paho.mqtt.client as mqtt
 import yaml
 from dataclasses import dataclass
+from datetime import datetime 
 
 with open('conf.yml', 'r') as file:
   conf_data = yaml.safe_load(file)
@@ -17,7 +18,8 @@ devices=[]
 class device:
     name: str
     time_up: str
-    time_last_seen: str
+    dts: str
+    dt: datetime
 
 # Define event callbacks
 def on_connect(client, userdata, flags, rc):
@@ -28,15 +30,23 @@ def on_message(client, obj, msg):
     if 'time_up' in str(msg.topic):
         dev_name= str(msg.topic).split('/')[2]
         time_up= str(msg.payload).split('\'')[1]
+        dt = datetime.now()
+        dts=str(dt).split('.')[0]
         #print(F'devname: {dev_name}')
         for dev in devices: 
             if dev.name == dev_name:
                 #print('in,update')
                 dev.time_up=time_up
+                dev.dts=dts
+                dev.dt=dt
                 break
         else:
             #print('out,append')
-            devices.append(device(dev_name,time_up))
+            devices.append(device(dev_name,time_up, dts,dt))
+        def sort_by_ts(dev):
+            return dev.name
+        
+        devices.sort(key=sort_by_ts)
         print(devices)
         print('****************\n')
 
